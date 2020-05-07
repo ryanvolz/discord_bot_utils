@@ -44,34 +44,26 @@ def dump_persistent_settings(path, settings):
 class DiscordIDSettings(object):
     """Class for managing related settings corresponding to Discord IDs."""
 
-    def __init__(self, name, default_settings=None):
+    def __init__(self, bot, name, default_settings=None):
         """Initialize settings object for a given group/file name."""
         if default_settings is None:
             default_settings = {}
+        self.bot = bot
         self.name = name
         self.default_settings = default_settings
 
-    def setup(self, bot):
-        """Set up persistent settings for the bot."""
         # set up storage for settings and load from persistent file
-        if not hasattr(bot, "storage"):
-            # define a storage dictionary on the bot if no other extension has yet
-            bot.storage = {}
-        bot.storage[self.name] = {}
-        settings_path = pathlib.Path(".settings", f"{self.name}.yml")
-        bot.storage[self.name]["settings_path"] = settings_path
-        bot.storage[self.name]["settings"] = load_persistent_settings(settings_path)
+        self.settings_path = pathlib.Path(".settings", f"{self.name}.yml")
+        self.id_dict = load_persistent_settings(self.settings_path)
 
-    def teardown(self, bot):
+    def teardown(self):
         """Tear down persistent settings for the bot."""
         # dump persistent storage to file
-        dump_persistent_settings(
-            bot.storage[self.name]["settings_path"], bot.storage[self.name]["settings"]
-        )
+        dump_persistent_settings(self.settings_path, self.id_dict)
 
-    def get(self, bot, id, key, default=None):
+    def get(self, id, key, default=None):
         """Get value corresponding to ID from bot setting storage."""
-        id_settings = bot.storage[self.name]["settings"][id]
+        id_settings = self.id_dict[id]
         try:
             val = id_settings[key]
         except KeyError:
@@ -81,6 +73,6 @@ class DiscordIDSettings(object):
                 val = default
         return val
 
-    def set(self, bot, id, key, val):
+    def set(self, id, key, val):
         """Set value corresponding to ID to bot setting storage."""
-        bot.storage[self.name]["settings"][id][key] = val
+        self.settings[id][key] = val
