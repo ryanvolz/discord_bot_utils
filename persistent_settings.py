@@ -9,7 +9,6 @@
 # SPDX-License-Identifier: BSD-3-Clause
 # ----------------------------------------------------------------------------
 """Utilities for persistent settings corresponding to Discord IDs."""
-import collections
 import os
 import pathlib
 
@@ -23,7 +22,7 @@ yaml.default_flow_style = False
 
 def load_persistent_settings(path):
     """Load settings from a yaml file."""
-    settings = collections.defaultdict(dict)
+    settings = {}
     if path.exists():
         with open(path, "r") as f:
             persistent = yaml.load(f)
@@ -63,8 +62,8 @@ class DiscordIDSettings(object):
 
     def get(self, id, key, default=None):
         """Get value corresponding to ID from bot setting storage."""
-        id_settings = self.id_dict[id]
         try:
+            id_settings = self.id_dict[id]
             val = id_settings[key]
         except KeyError:
             try:
@@ -75,4 +74,9 @@ class DiscordIDSettings(object):
 
     def set(self, id, key, val):
         """Set value corresponding to ID to bot setting storage."""
-        self.settings[id][key] = val
+        try:
+            id_settings = self.id_dict[id]
+        except KeyError:
+            id_settings = {}
+            self.id_dict[id] = id_settings
+        id_settings[key] = val
