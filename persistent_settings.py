@@ -80,3 +80,11 @@ class DiscordIDSettings(object):
             id_settings = {}
             self.id_dict[id] = id_settings
         id_settings[key] = val
+
+    def unset(self, id, key):
+        """Unset a key value, so it will fall back to the default."""
+        try:
+            id_settings = self.id_dict[id]
+        except KeyError:
+            return
+        del id_settings[key]
